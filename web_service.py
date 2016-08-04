@@ -6,9 +6,9 @@ import time
 import json
 from firebase import firebase
 
-firebase = firebase.FirebaseApplication('https://guap-test.firebaseio.com/')
+firebase = firebase.FirebaseApplication('https://guap-6f88c.firebaseio.com/')
 parameters = {'api_key': 'owtDCkSy4nZ7G7J1dSEa', 'order':'desc', 'rows':4}
-FIREBASE_SECRET = 'N1mFEGq6SSFn1GE6srl4aKgzyxCqMTGNNcVvGtDc'
+FIREBASE_SECRET = 'Z2UD52Yp7TYKzkDD8GC7G5PgAPSGGKsdbpPsc3sL'
 stock_tickers = firebase.get('/bets', None, params = {'shallow':'true', 'auth':FIREBASE_SECRET})
 
 class Stock():
@@ -46,22 +46,18 @@ class Stock():
 	   
 
 	def getWinningPool(self):
-		winningBettors = []
 		winningPool = 0
-		losingBettors = []
 		losingPool = 0
 		bettors = self.getBettors()
 		if len(bettors) > 0 and bettors != None:
 			for index, bettor in enumerate(bettors):
 				if (((bettor['direction'] == 'up') and (self.getDirection() == True)) or ((bettor['direction'] == 'down') and (self.getDirection() == False))):
 					winningPool += float(bettor['amount'])
-					winningBettors.append(bettor)
 					bettor['isWinner'] = True
 					firebase.patch('/bets/'+self._ticker+'/'+self.current_date+'/bettors/'+str(index),
 									data = {'isWinner': True}, params = {'auth':FIREBASE_SECRET})
 				else:
 					losingPool += float(bettor['amount'])
-					losingBettors.append(bettor)
 					bettor['isWinner'] = False
 					firebase.patch('/bets/'+self._ticker+'/'+self.current_date+'/bettors/'+str(index),
 					 				data = {'isWinner': False}, params = {'auth':FIREBASE_SECRET})
@@ -96,16 +92,36 @@ def get_leaderboard():
 	leaderboard = []
 	users = firebase.get('/users', None, params = {'auth':FIREBASE_SECRET})
 	json.dumps(users)
-	#print (users)
 	for key, value in users.items():
 		try:
 			leaderboard.append(dict({'user':str(key), 'amt_won': (value['Pending Bets']['amt_won'])}))
 		except:
 			pass
-	
 	leaderboard = sorted(leaderboard, key=lambda k: k['amt_won'], reverse = True)
-	print(leaderboard)
 	firebase.put('/leaderboard/', data = leaderboard, name = 'Leaderboard', params = {'auth': FIREBASE_SECRET})
+
+def newDateNodes():
+	for t in stock_tickers:
+		tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=1)
+		tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
+		firebase.put('/bets/'+t, 
+					data = tomorrow_date,
+					name = 'date',params={'auth':FIREBASE_SECRET})
+		firebase.put('/bets/'+t+'/'+date, 
+					data = 0,
+					name = "num-bettors-up",
+					params={'auth':FIREBASE_SECRET})
+		firebase.put('/bets/'+t+'/'+date, 
+					data = 0,
+					name = "num-bettors-down",
+					params={'auth':FIREBASE_SECRET})
+
+def clearPendingBets(username):
+	try:
+		pendingBets = (firebase.delete('/users/'+username,'Pending Bets', params = 'auth':FIREBASE_SECRET}))
+	except(TypeError):
+		pass
+
 def sort():
 	if len(stock_tickers) > 0:
 		for ticker in stock_tickers:
@@ -117,6 +133,8 @@ def sort():
 
 get_leaderboard()
 schedule.every().day.at("16:16").do(sort)
+schedule.every().day.at("23:55").do(newDateNodes)
+
 while True:
     schedule.run_pending()
     time.sleep(1)
