@@ -9,6 +9,7 @@ firebase = firebase.FirebaseApplication('https://guap-6f88c.firebaseio.com')
 parameters = {'api_key': 'owtDCkSy4nZ7G7J1dSEa', 'order':'desc', 'rows':4}
 FIREBASE_SECRET = 'Z2UD52Yp7TYKzkDD8GC7G5PgAPSGGKsdbpPsc3sL'
 stock_tickers = firebase.get('/bets', None, params = {'shallow':'true', 'auth':FIREBASE_SECRET})
+user_list = firebase.get('/users', None, params = {'shallow':'true', 'auth':FIREBASE_SECRET})
 
 class Stock():
 	_ticker = "GUAP"
@@ -83,6 +84,26 @@ class Stock():
 		else:
 			pass
 
+def newDateNodes():
+	for t in stock_tickers:
+		tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=1)
+		tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
+		firebase.put('/bets/'+t, 
+					data = tomorrow_date,
+					name = 'date',params={'auth':FIREBASE_SECRET})
+		firebase.put('/bets/'+t+'/'+date, 
+					data = 0,
+					name = "num-bettors-up",
+					params={'auth':FIREBASE_SECRET})
+		firebase.put('/bets/'+t+'/'+date, 
+					data = 0,
+					name = "num-bettors-down",
+					params={'auth':FIREBASE_SECRET})
+
+#def clearPendingBets(username):
+#	try:
+#		pendingBets = (firebase.get('/users/'+username+))
+	
 def sort():
 	if len(stock_tickers) > 0:
 		for ticker in stock_tickers:
@@ -93,6 +114,8 @@ def sort():
 		pass
 
 schedule.every().day.at("16:16").do(sort)
+schedule.every().day.at("23:55").do(newDateNodes)
+
 while True:
     schedule.run_pending()
     time.sleep(1)
