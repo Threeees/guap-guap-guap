@@ -100,9 +100,11 @@ def newDateNodes():
 					name = "num-bettors-down",
 					params={'auth':FIREBASE_SECRET})
 
-#def clearPendingBets(username):
-#	try:
-#		pendingBets = (firebase.get('/users/'+username+))
+def clearPendingBets(username):
+	try:
+		pendingBets = (firebase.delete('/users/'+username,'Pending Bets', params = 'auth':FIREBASE_SECRET}))
+	except(TypeError):
+		pass
 	
 def sort():
 	if len(stock_tickers) > 0:
