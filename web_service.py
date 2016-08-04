@@ -15,7 +15,7 @@ class Stock():
 	_ticker = "GUAP"
 	_prev_close = 0.00
 	_today_close = 0.00
-	current_date = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d')
+	#current_date = datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d') 	
 
 	def __init__ (self, ticker):
 		self._ticker = ticker
@@ -102,7 +102,7 @@ def newDateNodes():
 
 def clearPendingBets(username):
 	try:
-		pendingBets = (firebase.delete('/users/'+username,'Pending Bets', params = 'auth':FIREBASE_SECRET}))
+		pendingBets = (firebase.delete('/users/'+username,'Pending Bets', params = {'auth':FIREBASE_SECRET}))
 	except(TypeError):
 		pass
 	
@@ -115,8 +115,9 @@ def sort():
 	else:
 		pass
 
+schedule.every().day.at("16:00").do(newDateNodes)
 schedule.every().day.at("16:16").do(sort)
-schedule.every().day.at("23:55").do(newDateNodes)
+
 
 while True:
     schedule.run_pending()
