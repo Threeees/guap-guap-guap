@@ -101,20 +101,13 @@ def getLeaderboard():
 	firebase.put('/leaderboard/', data = leaderboard, name = 'Leaderboard', params = {'auth': FIREBASE_SECRET})
 
 def newDateNodes():
-	for t in stock_tickers:
-		tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=1)
-		tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
-		firebase.put('/bets/'+t, 
-					data = tomorrow_date,
-					name = 'date',params={'auth':FIREBASE_SECRET})
-		firebase.put('/bets/'+t+'/'+date, 
-					data = 0,
-					name = "num-bettors-up",
-					params={'auth':FIREBASE_SECRET})
-		firebase.put('/bets/'+t+'/'+date, 
-					data = 0,
-					name = "num-bettors-down",
-					params={'auth':FIREBASE_SECRET})
+def init_day():
+    date = datetime.datetime.strftime(datetime.datetime.now()+datetime.timedelta(1),'%Y-%m-%d')
+    print(date)
+    for t in tic:
+        firebase.put('/bets/'+t+'/'+date, data=0, name = "num-bettors-up",params={'auth':FIREBASE_SECRET})
+        firebase.put('/bets/'+t+'/'+date, data=0, name = "num-bettors-down",params={'auth':FIREBASE_SECRET})    
+    return redirect(url_for('entry'))
 
 def clearPendingBets(username):
 	try:
