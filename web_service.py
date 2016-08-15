@@ -101,7 +101,7 @@ def getLeaderboard():
 	firebase.put('/leaderboard/', data = leaderboard, name = 'Leaderboard', params = {'auth': FIREBASE_SECRET})
 
 def newDateNodes():
-	tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=2)
+	tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=1)
 	tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
 	print (tomorrow_date)
 	for t in stock_tickers:
@@ -117,6 +117,7 @@ def newDateNodes():
 					data = 0,
 					name = "num-bettors-down",
 					params={'auth':FIREBASE_SECRET})
+
 
 def clearPendingBets(username):
 	try:
