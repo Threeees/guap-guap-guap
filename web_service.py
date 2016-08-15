@@ -65,7 +65,7 @@ class Stock():
 			if winningPool == 0:
 				pass
 			else:
-				payoutRatio = losingPool/winningPool * 0.9
+				payoutRatio = losingPool / winningPool * 0.9
 				print (payoutRatio)
 				for bettor in bettors:
 					if bettor['isWinner'] == True:
@@ -75,7 +75,7 @@ class Stock():
 							firebase.put('/users/'+bettor['user'], data={'amt_won': amt_won+ amt}, name = 'Pending Bets',params = {'auth':FIREBASE_SECRET})
 							print(bettor['user']+' is already a winner, amount won: '+ str(amt_won))
 						else:
-							firebase.put('/users/'+bettor['user'], data = {'amt_won':amt}, name = 'Pending Bets', params = {'auth':FIREBASE_SECRET})
+							firebase.put('/users/' + bettor['user'], data = {'amt_won':amt}, name = 'Pending Bets', params = {'auth':FIREBASE_SECRET})
 							print(bettor['user']+'\'s first win of the day, amount won: '+ str(amt))
 						balance = float(firebase.get('/users/'+bettor['user']+"/Wallet", "deposit" , params = {'auth':FIREBASE_SECRET}))
 						deposit = balance + amt
@@ -101,17 +101,19 @@ def getLeaderboard():
 	firebase.put('/leaderboard/', data = leaderboard, name = 'Leaderboard', params = {'auth': FIREBASE_SECRET})
 
 def newDateNodes():
+	tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=2)
+	tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
+	print (tomorrow_date)
 	for t in stock_tickers:
-		tomorrow_date = datetime.datetime.now() + datetime.timedelta(days=1)
-		tomorrow_date = datetime.datetime.strftime(tomorrow_date, '%Y-%m-%d')
 		firebase.put('/bets/'+t, 
-					data = tomorrow_date,
-					name = 'date',params={'auth':FIREBASE_SECRET})
-		firebase.put('/bets/'+t+'/'+date, 
-					data = 0,
-					name = "num-bettors-up",
+					data = tomorrow_date, 
+					name = 'date', 
 					params={'auth':FIREBASE_SECRET})
-		firebase.put('/bets/'+t+'/'+date, 
+		firebase.put('/bets/'+t+'/'+tomorrow_date, 
+					data=0, 
+					name = "num-bettors-up", 
+					params={'auth':FIREBASE_SECRET})
+		firebase.put('/bets/'+t+'/'+tomorrow_date, 
 					data = 0,
 					name = "num-bettors-down",
 					params={'auth':FIREBASE_SECRET})
@@ -136,6 +138,7 @@ schedule.every().day.at("16:00").do(newDateNodes)
 schedule.every().day.at("16:16").do(sort)
 schedule.every().day.at("16:30").do(getLeaderboard)
 
+newDateNodes()
 
 while True:
     schedule.run_pending()
